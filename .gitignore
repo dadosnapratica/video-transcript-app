@@ -169,3 +169,17 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Ignorar todos os arquivos dentro de "data"
+data/*
+
+# Não ignorar subpastas
+!data/**/
+
+# Ignorar todos arquivos dentro das subpastas
+data/**/*
+
+# Ignora os arquivos com os secrets
+client_secret*.json
+
+ffmpeg*
