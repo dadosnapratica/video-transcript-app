@@ -30,9 +30,7 @@ logger = setup_logger()
 
 st.title('YouTube Video Transcriber')
 
-path_ffmpeg=utils.encontrar_ffmpeg()
-if len(path_ffmpeg)>0:
-    st.write('ffmpeg instalado!')    
+st.write(utils.validate_prereq())
 
 # Carregar dados de idioma
 languages = get_language_data()

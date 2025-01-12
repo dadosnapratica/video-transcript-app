@@ -5,6 +5,12 @@ import os
 from dotenv import load_dotenv
 import shutil
 import platform
+# used to run shell commands to validate prerequisites
+import subprocess
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from pathlib import Path
+
 
 load_dotenv()
 google_api_key=os.getenv('GOOGLE_API_KEY')
@@ -90,3 +96,60 @@ def encontrar_ffmpeg():
     
     # Retorna erro se não for encontrado
     raise FileNotFoundError("O executável `ffmpeg` não foi encontrado. Certifique-se de que está instalado e no PATH.")
+
+def validate_prereq():
+    results = []
+    ffmeg_ok=False
+    google_api_key_ok=False
+    google_api_ok=False
+    folder_data_ok=False
+
+    # Validar FFmpeg
+    try:
+        #subprocess.run(["ffmpeg", "-version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if len(encontrar_ffmpeg())>0:
+            results.append(" FFmpeg: ✅ |")
+            ffmeg_ok=True
+        else:
+            results.append(" FFmpeg: ❌ |")
+   
+    except subprocess.CalledProcessError:
+        results.append(" FFmpeg: ❌ |")
+
+    # Validar Google API Key
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if api_key:
+        results.append(" Google API Key: ✅ |")
+        google_api_key_ok=True
+        # Testar acesso à API do Google
+        try:
+            youtube = build('youtube', 'v3', developerKey=api_key)
+            youtube.channels().list(part="id", id="UC_x5XG1OV2P6uZZ5FSM9Ttw").execute()
+            results.append(" API do Google: ✅ |")
+            google_api_ok=True
+        except Exception as e:
+            results.append(" API do Google: ❌ |")
+    else:
+        results.append(" Google API Key: ❌ |")
+        results.append(" API do Google: ❌ |")
+
+    # Validar acesso para gravação na pasta data
+    try:
+        test_file_path = Path("data/test_write.txt")
+        with test_file_path.open("w") as f:
+            f.write("test")
+        test_file_path.unlink()  # Remover o arquivo de teste
+        results.append(" Folder data: ✅")
+        folder_data_ok=True
+    except IOError:
+        results.append(" Folder data: ❌")
+
+    status_checks = "\n".join(results)
+    if ffmeg_ok or not google_api_key_ok or not google_api_ok or not folder_data_ok:
+        status_checks+='\n\nThere are some pre-requirements error, please check links bellow to correct it.' 
+    
+    if ffmeg_ok:
+        status_checks+='\n\n[ffmpeg install instructions](https://github.com/dadosnapratica/video-transcript-app#-how-to-use)'
+
+    return status_checks
+

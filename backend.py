@@ -111,7 +111,7 @@ def transcrever_video(video_url, video_id, trans_lang):
     chunks = transcriber.split_audio()
     text_entries = transcriber.transcribe_audio(chunks)
     vtt_text=transcriber.create_vtt(text_entries)
-    #transcriber.cleanup()
+    transcriber.cleanup()
 
     return vtt_text
     # raise NotImplementedError('Feature not implemented yet')
