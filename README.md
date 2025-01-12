@@ -30,7 +30,7 @@ The application is running online and can be accessed at: [https://video-transcr
 │   ├── output/               # Output files (e.g., VTT subtitles)
 ```
 
-### Details of the `data` Directory
+### 📝 Details of the `data` Directory
 
 - **`audio/`**: Contains audio files downloaded from YouTube in `.mp3` format.
 - **`chunks/`**: Contains audio fragments resulting from silence-based splitting.

@@ -145,11 +145,17 @@ def validate_prereq():
         results.append(" Folder data: ❌")
 
     status_checks = "\n".join(results)
-    if ffmeg_ok or not google_api_key_ok or not google_api_ok or not folder_data_ok:
+    if not ffmeg_ok or not google_api_key_ok or not google_api_ok or not folder_data_ok:
         status_checks+='\n\nThere are some pre-requirements error, please check links bellow to correct it.' 
     
-    if ffmeg_ok:
-        status_checks+='\n\n[ffmpeg install instructions](https://github.com/dadosnapratica/video-transcript-app#-how-to-use)'
+    if not ffmeg_ok:
+        status_checks+='\n\n [ ] [ffmpeg install instructions](https://github.com/dadosnapratica/video-transcript-app?tab=readme-ov-file#2-configure-ffmpeg)'
+
+    if not google_api_key_ok:
+        status_checks+='\n\n [ ] [Create Gooogle API Key instructions](https://github.com/dadosnapratica/video-transcript-app?tab=readme-ov-file#3-configure-youtube-api-credentials)'
+
+    if not google_api_ok:
+        status_checks+='\n\n [ ] Google API not acessible please check API Key is configured [Create Gooogle API Key instructions](https://github.com/dadosnapratica/video-transcript-app?tab=readme-ov-file#3-configure-youtube-api-credentials)'
 
     return status_checks
 
