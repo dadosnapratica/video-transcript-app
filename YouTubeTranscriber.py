@@ -7,6 +7,8 @@ import logging
 import utils
 import platform
 
+logging.getLogger('YouTubeTranscriber')
+
 class YouTubeTranscriber:
     def __init__(self, video_url, video_id, base_dir="data"):
         self.base_dir = base_dir
@@ -24,27 +26,36 @@ class YouTubeTranscriber:
                 os.makedirs(path)
     
     def download_audio_yt_dlp(self):
-        import subprocess
-        
-        audio_path = os.path.join(self.audio_dir, f"{self.video_id}.mp3".lower())  # Adjust filename as needed
+        import yt_dlp
+
+        audio_path = os.path.join(self.audio_dir, f"{self.video_id}".lower())
         ffmpeg_path=os.path.dirname(utils.encontrar_ffmpeg())
 
-        command = [
-        'yt-dlp',
-        '-x',  # Extract audio only
-        '--audio-format', 'mp3',  # Convert to mp3
-        '-o', f'{audio_path}',
-        '--ffmpeg-location', ffmpeg_path,  # Specify the ffmpeg location
-        self.video_url
-        ]
+        # Video URL
+        video_url = f"https://www.youtube.com/watch?v={self.video_id}"
+        
+        # Define the options to match your command-line parameters
+        ydl_opts = {
+            'format': 'bestaudio/best',  # Extract best available audio
+            'outtmpl': audio_path,  # Save with video ID as filename
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'wav',  # Convert to mp3
+                'preferredquality': '192',
+            }],
+            'ffmpeg_location': ffmpeg_path,  # Specify FFmpeg path
+        }
+
+        logging.info(f'Working in audio file {audio_path}')
+        
         try:
             logging.info('Executing download audio with yt-dlp')
-            # Log the command
-            logging.info(f"Executing command: {' '.join(command)}")
-
-            result = subprocess.run(command, check=True)
+        
+            # Run yt-dlp with specified options
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([video_url])
             logging.info("Download completed successfully.")
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             logging.info(f"An error occurred: {e}")
             
     
@@ -61,9 +72,27 @@ class YouTubeTranscriber:
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([self.video_url])
 
+    from pydub import AudioSegment
+
+    def split_audio_fixed_intervals(self, audio_path, chunk_length_ms=60000):
+        """
+        Splits an audio file into fixed-length chunks.
+
+        :param audio_path: Path to the input audio file.
+        :param chunk_length_ms: Length of each chunk in milliseconds (default: 60 sec).
+        :return: List of audio chunks.
+        """
+        #audio_pathx = "./data/audio/myteaiq7ipe.mp3"
+        sound = AudioSegment.from_file(audio_path)  # Load audio
+        logging.debug(f"Len of sound {len(sound)}")
+        logging.debug(f"audio_path: {audio_path}, chunk_length: {chunk_length_ms}")
+        chunks = [sound[i:i + chunk_length_ms] for i in range(0, len(sound), int(chunk_length_ms))]
+
+        return chunks
+
     def split_audio(self):
         logging.info('Spliting Audio...')
-        audio_path = os.path.join(self.audio_dir, f"{self.video_id}.mp3".lower())  # Adjust filename as needed        
+        audio_path = os.path.join(self.audio_dir, f"{self.video_id}.wav".lower())  # Adjust filename as needed        
         logging.info(f'Working in audio file {audio_path}')
         ffmpeg_bin_path=os.path.dirname(utils.encontrar_ffmpeg())
         # Get the current PATH environment variable
@@ -80,17 +109,18 @@ class YouTubeTranscriber:
         else:
             executavel_ffprobe="ffprobe"    
         AudioSegment.ffprobe = os.path.dirname(utils.encontrar_ffmpeg()) + '/' + executavel_ffprobe
-        
-        sound = AudioSegment.from_file(audio_path, format="mp3")
-
+                
         # Normalize the audio to a consistent level
         # normalized_sound = sound.normalize()
         
-        chunks = split_on_silence(
-            sound,
-            min_silence_len=2000,
-            silence_thresh=-30
-        )
+        # Alternative to Split on Silent Interval
+        #chunks = split_on_silence(
+        #    sound,
+        #    min_silence_len=2000,
+        #    silence_thresh=-30
+        #)
+        logging.info(f"Spliting Audio {audio_path}")
+        chunks=self.split_audio_fixed_intervals(audio_path)
         logging.info(f'Split Audio in {len(chunks)} chunks...')
         return chunks
 

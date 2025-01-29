@@ -32,6 +32,7 @@ st.title('YouTube Video Transcriber')
 
 st.write(utils.validate_prereq())
 
+
 # Carregar dados de idioma
 languages = get_language_data()
 
@@ -101,18 +102,17 @@ video_lang = st.selectbox(
    format_func=lambda x: f"{x[2]} - {x[0]}",
    index=default_index)
 
-#validate_button = st.button("Validate")
-#if validate_button:
-#    st.text_input()
 
-trans_lang = st.selectbox(
-  'Select transcription language:', 
-   options,
-   format_func=lambda x: f"{x[2]} - {x[0]}",
-   index=default_index)
+#TODO: Translate features to future implemantation
+#trans_lang = st.selectbox(
+#  'Select transcription language:', 
+#   options,
+#   format_func=lambda x: f"{x[2]} - {x[0]}",
+#   index=default_index)
    
 # Exibir bandeira do país selecionado
-st.image(video_lang[1], width=20)
+#st.image(video_lang[1], width=20)
+trans_lang='pt-BR'
 
 # Botão para obter transcrição
 if st.button('Transcribe Video'):
